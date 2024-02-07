@@ -1,0 +1,51 @@
+version: "3.8"
+services:
+  frontend:
+    container_name: frontend
+    build: ./frontend
+    tty: true
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app # アプリケーションのルートディレクトリにマウント
+      - /app/node_modules # node_modulesをコンテナ内にキープ
+    # volumes:
+    #   - type: bind
+    #     source: ./frontend
+    #     target: /pages
+    #   - type: volume
+    #     source: node_modules
+    #     target: /src/app/node_modules
+    command: "npm run dev"
+
+  mysql:
+    image: mysql
+    platform: linux/amd64
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: "go-college"
+      MYSQL_DATABASE: "todo_app"
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - ./db/init:/docker-entrypoint-initdb.d
+      - ./db-data:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    environment:
+      PMA_ARBITRARY: 1
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: "go-college"
+    ports:
+      - "127.0.0.1:4000:80"
+    links:
+      - mysql
+
+volumes:
+  db-data:
+    driver: local
+  node_modules:
+
